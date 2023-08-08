@@ -105,7 +105,7 @@ constexpr uchar IS_CRACK      = 0x0f;
 #define getLocalWindow(point)       localWindow[point.x - luPoint.x][point.y - luPoint.y]
 #define setMarks(point, val)        marks[point.x][point.y] |= val
 #define getMarks(point)             marks[point.x][point.y]
-#define resetMarks(point)           marks[point.x][point.y] == marks::NOT_MARK
+#define resetMarks(point)           marks[point.x][point.y] = marks::NOT_MARK
 #define getGrayVal(point)           img.at<uchar>(point.x, point.y)
 
 // 可能会做修改的、多处使用的函数
@@ -367,21 +367,16 @@ auto percolation(cv::Mat& img, vector<vector<uchar>>& marks) {
             if (marks[r][c] == marks::NOT_MARK) {
 				auto Fc = percolation_single_pixel(img_temp, img_out, marks, r, c);
 				img_out.at<uchar>(r, c) = Fc * 255;
-                // 若不能直接认定成分，则回归原始算法，使用阈值判定
-                if (marks[r][c] == marks::NOT_MARK) {
-                    marks[r][c] = Fc < Threshold ? marks::CRACK : marks::BACKGROUND;
-                }
             }
         }
     }
     for (int r = RM; r < rows + RM; r++) {
         for (int c = RM; c < cols + RM; c++) {
-            assert(marks[r][c] != marks::NOT_MARK);
             switch (marks[r][c]) {
                 case marks::BACKGROUND: { img_out.at<uchar>(r, c) = 255; break; }
                 case marks::CRACK:      { /* 其值在函数中被设置 255*TMax */ break; }
                 case marks::CONFUSED:   { img_out.at<uchar>(r, c) = 255; break; }
-                //case marks::NOT_MARK:   { /* 其值在循环中被设置 255*TMax */ break; }
+                case marks::NOT_MARK:   { /* 其值在循环中被设置 255*TMax */ break; }
                 default:
                     assert(true);
                     exit(-1);
@@ -576,55 +571,70 @@ export auto percolation_overlap(cv::Mat& img) {
             }
         }
     }
-
     percolation(img, marks);
-
-    vector<Corr> crack_vec, wait_percolation_vec;
-    vector<Corr> new_crack_vec{};
-    
-	// 统计裂缝点 (marks 坐标系）
-	crack_vec.clear();
-	for (auto i = 0; i < rows; i++) {
-		for (auto j = 0; j < cols; j++) {
-			Corr corr(i + RM, j + RM);
-			if (getMarks(corr) == marks::CRACK) {
-				crack_vec.push_back(corr);
-			}
-		}
-	}
-	// 统计非裂缝点邻居，加入 等待渗流的点集 中
-	for (const auto& p : crack_vec) {
-		for (const auto& direction : directionTable) {
-			auto neiborPoint = p + direction;
-			if (getMarks(neiborPoint) != marks::CRACK) {
-                resetMarks(neiborPoint);
-				wait_percolation_vec.push_back(neiborPoint);
-			}
-		}
-	}
-
-    while (true) {
-        // 在新增点上做渗流
-        percolation(img, marks);
-        showTemp(img);
-
-        // 检查是否有新的点被标记为裂缝
-        vector<Corr> temp;
-        for (const auto& p : wait_percolation_vec) {
-            if (getMarks(p) == marks::CRACK) {
-                for (const auto& direction : directionTable) {
-                    auto neiborPoint = p + direction;
-                    if (getMarks(neiborPoint) != marks::CRACK) {
-                        resetMarks(neiborPoint);
-                        temp.push_back(neiborPoint);
-                    }
-                }
-            }
-        }
-        if (temp.size() == 0) 
-            break;
-        wait_percolation_vec = std::move(temp);
-    }
-
     denoise(img);
+
+ //   vector<vector<uchar>> marks(rows + RM * 2, vector<uchar>(cols + RM * 2, marks::BACKGROUND));
+ //   for (auto i = 0; i < rows; i++) {
+ //       for (auto j = 0; j < cols; j++) {
+ //           Corr corr(i + RM, j + RM);
+ //           if (darkImg.at<uchar>(i, j) == 0) {
+ //               marks[corr.x][corr.y] = marks::NOT_MARK;
+ //           }
+ //       }
+ //   }
+
+ //   auto img_temp = img.clone();
+ //   percolation(img_temp, marks);
+
+ //   vector<Corr> crack_vec, wait_percolation_vec;
+ //   bool hasNewPoint = true;
+ //   
+	//// 统计裂缝点 (marks 坐标系)
+	//crack_vec.clear();
+	//for (auto i = RM; i < rows + RM; i++) {
+	//	for (auto j = RM; j < cols + RM; j++) {
+	//		Corr corr(i, j);
+	//		if (getMarks(corr) == marks::CRACK) {
+	//			crack_vec.push_back(corr);
+	//		}
+	//	}
+	//}
+	//// 统计非裂缝点邻居，加入 等待渗流的点集 中
+	//for (const auto& p : crack_vec) {
+	//	for (const auto& direction : directionTable) {
+	//		auto neiborPoint = p + direction;
+	//		if (getMarks(neiborPoint) != marks::CRACK) {
+ //               resetMarks(neiborPoint);
+	//			wait_percolation_vec.push_back(neiborPoint);
+	//		}
+	//	}
+	//}
+
+ //   while (hasNewPoint) {
+ //       hasNewPoint = false;
+ //       // 在新增点上做渗流
+ //       img_temp = img.clone();
+ //       percolation(img_temp, marks);
+
+ //       // 检查是否有新的点被标记为裂缝
+ //       vector<Corr> temp;
+ //       for (const auto& p : wait_percolation_vec) {
+ //           if (getMarks(p) == marks::CRACK) {
+ //               hasNewPoint = true;
+ //               for (const auto& direction : directionTable) {
+ //                   auto neiborPoint = p + direction;
+ //                   if (getMarks(neiborPoint) != marks::CRACK) {
+ //                       resetMarks(neiborPoint);
+ //                       temp.push_back(neiborPoint);
+ //                   }
+ //               }
+ //           }
+ //       }
+ //       wait_percolation_vec = std::move(temp);
+ //   }
+
+ //   img = img_temp.clone();
+ //   denoise(img);
+
 }

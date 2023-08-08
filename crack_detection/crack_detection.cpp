@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     //showTemp(inputImg);
 
     // 伽马变换增强对比度
-    //GammaTransform(inputImg, 5);
+    //GammaTransform(inputImg, 0.5);
     //showTemp(inputImg);
 
     // 光照补偿
