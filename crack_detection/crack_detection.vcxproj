@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="Corr.ixx" />
     <ClCompile Include="crack_detection.cpp" />
+    <ClCompile Include="DEBUG.ixx" />
     <ClCompile Include="percolation.ixx" />
     <ClCompile Include="preprocessing.ixx" />
   </ItemGroup>

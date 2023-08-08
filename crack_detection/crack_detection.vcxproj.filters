@@ -27,6 +27,9 @@
     <ClCompile Include="percolation.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DEBUG.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source.def">

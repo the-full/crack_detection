@@ -10,6 +10,8 @@ export struct Corr {
     Corr() = default;
     Corr(const Corr& c) = default;
     Corr(Corr&& c) = default;
+    Corr& operator=(Corr&) = default;
+    Corr& operator=(Corr&&) = default;
     ~Corr() = default;
 
     Corr(int x, int y) : x(x), y(y) {}
@@ -51,10 +53,13 @@ struct CorrWithVal {
     CorrWithVal() = default;
     CorrWithVal(const CorrWithVal&) = default;
     CorrWithVal(CorrWithVal&&) = default;
+    CorrWithVal& operator=(CorrWithVal&) = default;
+    CorrWithVal& operator=(CorrWithVal&&) = default;
     ~CorrWithVal() = default;
 
     CorrWithVal(const T& val, const Corr& c) : corr(c), val(val) {}
     CorrWithVal(const T& val, const int x, const int y) : corr(x, y), val(val) {}
+    
 
     inline bool operator<(const CorrWithVal& c) const {
         if (this->val != c.val)
